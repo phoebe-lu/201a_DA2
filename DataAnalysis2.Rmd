@@ -1,0 +1,10 @@
+---
+title: "Data Analysis 2"
+author: "Phoebe Lu"
+date: "11/20/2021"
+output: html_document
+---
+
+```{r Read csv}
+cdi <- read.csv('cdi_data.csv')
+```
