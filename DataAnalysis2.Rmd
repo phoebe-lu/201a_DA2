@@ -4,9 +4,13 @@ author: "Phoebe Lu"
 date: "11/20/2021"
 output: html_document
 ---
+How to interpret log transformed variables: https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqhow-do-i-interpret-a-regression-model-when-some-variables-are-log-transformed/
+
 
 ```{r Load libraries, message=F}
 library(dplyr)
+library(regclass)
+library(MASS)
 ```
 
 ```{r Initialization}
@@ -14,6 +18,7 @@ library(dplyr)
 cdi <- read.csv('cdi_data.csv')
 #Create new crimes/1000 variable
 cdi$crm_1000 <- (cdi$crimes/cdi$pop)*1000
+hist(cdi$crm_1000)
 #Factor region, rename variables, and set South as reference population (largest)
 cdi$region_f <- as.factor(cdi$region)
 levels(cdi$region_f) <- c("Northeast", "North Central", "South", "West")
@@ -32,13 +37,8 @@ Variable selection: https://ucr.fbi.gov/hate-crime/2011/resources/variables-affe
 - Region (region)
 * Outcome of interest: crime rate (crm_1000)
 ```{r EDA}
-#Normality
-hist(cdi$pop18) #normal
-hist(cdi$hsgrad) #left skewed
-hist(cdi$bagrad) #right skewed
-hist(cdi$poverty) #right skewed
-hist(cdi$unemp) #right skewed
-hist(cdi$pcincome) #normal
+#Check for missing variables
+sum(is.na(cdi)) #None are missing
 
 #Mean & SD
 mean(cdi$pop18) #28.57
@@ -54,11 +54,76 @@ sd(cdi$unemp) #2.34
 mean(cdi$pcincome) #18561.5
 sd(cdi$pcincome) #4059.192
 
-scatter_continuous <- cdi %>% select(pop18, hsgrad, bagrad, poverty, unemp, pcincome)
-pairs(scatter_continuous)
+#Correlations
+continuous_vars <- cdi %>% dplyr::select(pop18, hsgrad, bagrad, poverty, unemp, pcincome)
+pairs(continuous_vars) #visualize pairwise correlations
+cors <- all_correlations(continuous_vars) #Pearson's correlation coefficients
+cors
+##Strongest correlations are:
+##Hsgrad*bagrad = 0.71; hsgrad*poverty=-0.69, bagrad*pcincome = 0.695
+
+#Normality
+hist(cdi$pop18) #normal
+hist(cdi$hsgrad) #left skewed
+hist(cdi$bagrad) #right skewed
+hist(cdi$poverty) #right skewed
+hist(cdi$unemp) #right skewed
+hist(cdi$pcincome) #normal
+hist(cdi$crm_1000) #right skewed
+
+#Log transform skewed variables
+cdi$log_hsgrad <- log(cdi$hsgrad)
+cdi$log_bagrad <- log(cdi$bagrad)
+cdi$log_poverty <- log(cdi$poverty)
+cdi$log_unemp <- log(cdi$unemp)
+cdi$log_crm_1000 <- log(cdi$crm_1000)
+
 ```
 
-```{r Data cleaning}
-
+```{r Simple regressions}
+sr.1 <- lm(log_crm_1000 ~ pop18, data=cdi)
+summary(sr.1) #p-value < 0.001, + estimate
+sr.2 <- lm(log_crm_1000 ~ log_hsgrad, data=cdi)
+summary(sr.2) #p-value < 0.001, - estimate
+sr.3 <- lm(log_crm_1000 ~ log_bagrad, data=cdi)
+summary(sr.3) #p-value = 0.0586, + estimate
+sr.4 <- lm(log_crm_1000 ~ log_poverty, data=cdi)
+summary(sr.4) #p-value < 0.001, + estimate
+sr.5 <- lm(log_crm_1000 ~ log_unemp, data=cdi) 
+summary(sr.5) #p-value = 0.956, + estimate
+sr.6 <- lm(log_crm_1000 ~ pcincome, data=cdi)
+summary(sr.6) #p-value = 0.16, - estimate
+sr.7 <- lm(log_crm_1000 ~ region_f, data=cdi)
+summary(sr.7) #all p-value < 0.05, all - estimates
 ```
+
+```{r Multivariate regressions}
+mr.1 <- lm(log_crm_1000 ~ pop18 + log_hsgrad + log_bagrad + log_poverty + region_f, data=cdi)
+summary(mr.1)
+AIC(mr.1)
+```
+
+```{r Stepwise regressions}
+intercept_only <- lm(log_crm_1000~1, data=cdi)
+#forward stepwise regression with step() function from stats package
+forward <- step(intercept_only, direction='forward', scope=formula(mr.1), trace=0)
+forward$anova
+forward$coefficients
+AIC(forward)
+#backward stepwise regression with step() function from stats package
+backward <- step(mr.1, direction = 'backward', scope=formula(mr.1), trace=0)
+backward$anova
+backward$coefficients
+AIC(backward)
+
+
+#forward and backward stepwise regression with MASS package
+full.model <- lm(log_crm_1000 ~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp + pcincome, data=cdi)
+# Stepwise regression model
+step.model <- stepAIC(full.model, direction = "both", 
+                      trace = FALSE)
+summary(step.model)
+AIC(step.model)
+```
+
 
