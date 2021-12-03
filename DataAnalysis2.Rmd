@@ -5,6 +5,60 @@ date: "11/20/2021"
 output: html_document
 ---
 
-```{r Read csv}
-cdi <- read.csv('cdi_data.csv')
+```{r Load libraries, message=F}
+library(dplyr)
 ```
+
+```{r Initialization}
+#Read in dataset
+cdi <- read.csv('cdi_data.csv')
+#Create new crimes/1000 variable
+cdi$crm_1000 <- (cdi$crimes/cdi$pop)*1000
+#Factor region, rename variables, and set South as reference population (largest)
+cdi$region_f <- as.factor(cdi$region)
+levels(cdi$region_f) <- c("Northeast", "North Central", "South", "West")
+barplot(table(cdi$region_f)) #South is the highest, so set as ref
+cdi$region_f <- relevel(cdi$region_f, ref="South")
+```
+
+Variable selection: https://ucr.fbi.gov/hate-crime/2011/resources/variables-affecting-crime
+* Variables in our dataset that are included in FBI's list are:
+- % of population aged 18-34 (pop18)
+- % high school graduates (hsgrad)
+- % bachelor's degrees (bagrad)
+- % below poverty level (poverty)
+- % unemployment (unemp)
+- per capita income (pcincome)
+- Region (region)
+* Outcome of interest: crime rate (crm_1000)
+```{r EDA}
+#Normality
+hist(cdi$pop18) #normal
+hist(cdi$hsgrad) #left skewed
+hist(cdi$bagrad) #right skewed
+hist(cdi$poverty) #right skewed
+hist(cdi$unemp) #right skewed
+hist(cdi$pcincome) #normal
+
+#Mean & SD
+mean(cdi$pop18) #28.57
+sd(cdi$pop18) #4.19
+mean(cdi$hsgrad) #77.56
+sd(cdi$hsgrad) #7.02
+mean(cdi$bagrad) #21.08
+sd(cdi$bagrad) #7.65
+mean(cdi$poverty) #8.72
+sd(cdi$poverty) #4.65
+mean(cdi$unemp) #6.60
+sd(cdi$unemp) #2.34
+mean(cdi$pcincome) #18561.5
+sd(cdi$pcincome) #4059.192
+
+scatter_continuous <- cdi %>% select(pop18, hsgrad, bagrad, poverty, unemp, pcincome)
+pairs(scatter_continuous)
+```
+
+```{r Data cleaning}
+
+```
+
