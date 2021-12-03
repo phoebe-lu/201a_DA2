@@ -5,6 +5,15 @@ date: "11/20/2021"
 output: html_document
 ---
 
+```{r Load libraries, message=F}
+library(dplyr)
+```
+
 ```{r Read csv}
 cdi <- read.csv('cdi_data.csv')
+```
+
+```{r Data cleaning}
+#Create new crimes/1000 variable
+cdi$crm_1000 <- (cdi$crimes/cdi$pop)*1000
 ```
