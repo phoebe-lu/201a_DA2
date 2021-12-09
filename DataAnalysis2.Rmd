@@ -98,9 +98,34 @@ summary(sr.7) #all p-value < 0.05, all - estimates
 ```
 
 ```{r Multivariate regressions}
-mr.1 <- lm(log_crm_1000 ~ pop18 + log_hsgrad + log_bagrad + log_poverty + region_f, data=cdi)
+#Manual stepwise regression (backwards)
+mr.1 <- lm(log_crm_1000 ~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp + pcincome + region_f, data=cdi)
 summary(mr.1)
-AIC(mr.1)
+AIC(mr.1) #385.4556
+
+mr.1a <- lm(log_crm_1000 ~ pop18 + log_poverty + pcincome + region_f, data=cdi)
+summary(mr.1a)
+AIC(mr.1a) #380.4242
+
+mr.2 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp + pcincome, data=cdi)
+summary(mr.2)
+AIC(mr.2) #462.6892
+
+mr.3 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp, data=cdi)
+summary(mr.3)
+AIC(mr.3) #480.6864
+
+mr.4 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad + log_poverty, data=cdi)
+summary(mr.4)
+AIC(mr.4) #479.3185
+
+mr.5 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad, data=cdi)
+summary(mr.5)
+AIC(mr.5) #585.2698
+
+mr.6 <- lm(log_crm_1000~ pop18 + log_hsgrad, data=cdi)
+summary(mr.6)
+AIC(mr.6) #609.8939
 ```
 
 ```{r Stepwise regressions}
