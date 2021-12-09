@@ -11,6 +11,9 @@ How to interpret log transformed variables: https://stats.idre.ucla.edu/other/mu
 library(dplyr)
 library(regclass)
 library(MASS)
+library(ggplot2)
+library(grid)
+library(gridExtra)
 ```
 
 ```{r Initialization}
@@ -41,6 +44,8 @@ Variable selection: https://ucr.fbi.gov/hate-crime/2011/resources/variables-affe
 sum(is.na(cdi)) #None are missing
 
 #Mean & SD
+mean(cdi$crm_1000) #57.29
+sd(cdi$crm_1000) #27.33
 mean(cdi$pop18) #28.57
 sd(cdi$pop18) #4.19
 mean(cdi$hsgrad) #77.56
