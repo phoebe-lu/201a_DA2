@@ -74,7 +74,7 @@ hist(cdi$hsgrad) #left skewed
 hist(cdi$bagrad) #right skewed
 hist(cdi$poverty) #right skewed
 hist(cdi$unemp) #right skewed
-hist(cdi$pcincome) #normal
+hist(cdi$pcincome) #right skewed
 hist(cdi$crm_1000) #right skewed
 
 longplot <- data.table(copy(cdi))
@@ -90,7 +90,7 @@ print(gg)
 
 #Log transform skewed variables
 #cdi$log_hsgrad <- log(cdi$hsgrad) don't think we should log this--not right-skewed
-cdi$log_bagrad <- log(cdi$bagrad)
+cdi$exp_bagrad<- exp(cdi$bagrad)
 cdi$log_poverty <- log(cdi$poverty)
 cdi$log_unemp <- log(cdi$unemp)
 cdi$log_pcincome <- log(cdi$pcincome)
