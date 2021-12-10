@@ -150,7 +150,7 @@ pairs(dcorr[,c("pop18", "hsgrad", "log_bagrad", "log_poverty", "log_unemp", "log
 sr.1 <- lm(log_crm_1000 ~ pop18, data=cdi)
 summary(sr.1) #p-value < 0.001, + estimate
 sr.2 <- lm(log_crm_1000 ~ hsgrad, data=cdi)
-summary(sr.2) #p-value = 0.474, - estimate == NOTE: update after not logging; 12/9 PL updated
+summary(sr.2) #p-value < 0.001, - estimate == NOTE: update after not logging; 12/9 PL updated
 sr.3 <- lm(log_crm_1000 ~ log_bagrad, data=cdi)
 summary(sr.3) #p-value = 0.0586, + estimate
 sr.4 <- lm(log_crm_1000 ~ log_poverty, data=cdi)
