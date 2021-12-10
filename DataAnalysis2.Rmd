@@ -1,7 +1,7 @@
 ---
 title: "Data Analysis 2"
-author: "Phoebe Lu"
-date: "11/20/2021"
+author: "Phoebe Lu, Matthew Coates, Cory Lumsdaine"
+date: "12/10/2021"
 output: html_document
 ---
 How to interpret log transformed variables: https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqhow-do-i-interpret-a-regression-model-when-some-variables-are-log-transformed/
@@ -61,7 +61,7 @@ mean(cdi$pcincome) #18561.5
 sd(cdi$pcincome) #4059.192
 
 #Correlations
-continuous_vars <- cdi %>% dplyr::select(pop18, hsgrad, bagrad, poverty, unemp, pcincome)
+continuous_vars <- cdi %>% dplyr::select(pop18, hsgrad, bagrad, poverty, unemp, pcincome,crm_1000)
 pairs(continuous_vars) #visualize pairwise correlations
 cors <- all_correlations(continuous_vars) #Pearson's correlation coefficients
 cors
@@ -98,14 +98,46 @@ cdi$log_crm_1000 <- log(cdi$crm_1000)
 
 longplot <- data.table(copy(cdi))
 longplot <- melt(longplot,id.vars=c("id","cty","state","region","region_f"))
-histdat <- copy(longplot[variable %in% c("pop18","hsgrad", "log_bagrad","log_poverty","log_unemp","log_pcincome","log_crm_1000")])
-histdat[,fact_var:=factor(variable,levels=c("pop18","hsgrad", "log_bagrad","log_poverty","log_unemp","log_pcincome","log_crm_1000"),
-                          labels=c("Population Age 18-34 (%)","Adults Graduated HS (%)","Adults with Bachelor's Degree (%) (log)","Population in Poverty (%) (log)","Unemployed (%) (log)","Income per Capita ($) (log)","Serious Crime Rate (per 1,000) (log)"))]
+histdat <- copy(longplot[variable %in% c("pop18","exp_hsgrad", "log_bagrad","log_poverty","log_unemp","log_pcincome","log_crm_1000")])
+histdat[,fact_var:=factor(variable,levels=c("pop18","exp_hsgrad", "log_bagrad","log_poverty","log_unemp","log_pcincome","log_crm_1000"),
+                          labels=c("Population Age 18-34 (%)","Adults Graduated HS (%) (exp)","Adults with Bachelor's Degree (%) (log)","Population in Poverty (%) (log)","Unemployed (%) (log)","Income per Capita ($) (log)","Serious Crime Rate (per 1,000) (log)"))]
 
 gg <- ggplot(histdat,aes(x=value)) + 
   geom_histogram() + theme_bw() + facet_wrap(~fact_var,scales="free") + ylab("Count") + 
   xlab("")
 print(gg)
+
+
+
+
+## correlation matrix of plots (scatters and correlation coefficients)
+## adapted from http://www.sthda.com/english/wiki/scatter-plot-matrices-r-base-graphs
+# Correlation panel
+panel.cor <- function(x, y){
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- round(cor(x, y), digits=2)
+  txt <- paste0("r = ", r)
+  #cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt)
+}
+# Customize upper panel
+upper.panel<-function(x, y){
+  points(x,y, pch = 19)
+}
+# Create the plots
+
+dcorr <- data.table(copy(cdi))
+dcorr <- dcorr[,c("pop18", "hsgrad", "bagrad", "poverty", "unemp", "pcincome","crm_1000"),with=F]
+
+
+pairs(dcorr[,c("pop18", "hsgrad", "bagrad", "poverty", "unemp", "pcincome","crm_1000")], 
+      lower.panel = panel.cor,
+      upper.panel = upper.panel)
+
+
+
+
 
 ```
 
