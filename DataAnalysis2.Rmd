@@ -14,6 +14,7 @@ library(MASS)
 library(ggplot2)
 library(grid)
 library(gridExtra)
+library(data.table)
 ```
 
 ```{r Initialization}
@@ -76,20 +77,43 @@ hist(cdi$unemp) #right skewed
 hist(cdi$pcincome) #normal
 hist(cdi$crm_1000) #right skewed
 
+longplot <- data.table(copy(cdi))
+longplot <- melt(longplot,id.vars=c("id","cty","state","region","region_f"))
+histdat <- copy(longplot[variable %in% c("pop18","hsgrad", "bagrad","poverty","unemp","pcincome","crm_1000")])
+histdat[,fact_var:=factor(variable,levels=c("pop18","hsgrad", "bagrad","poverty","unemp","pcincome","crm_1000"),
+                          labels=c("Population Age 18-34 (%)","Adults Graduated HS (%)","Adults with Bachelor's Degree (%)","Population in Poverty (%)","Unemployed (%)","Income per Capita ($)","Serious Crime Rate (per 1,000)"))]
+
+gg <- ggplot(histdat,aes(x=value)) + 
+  geom_histogram() + theme_bw() + facet_wrap(~fact_var,scales="free") + ylab("Count") + 
+  xlab("")
+print(gg)
+
 #Log transform skewed variables
-cdi$log_hsgrad <- log(cdi$hsgrad)
+#cdi$log_hsgrad <- log(cdi$hsgrad) don't think we should log this--not right-skewed
 cdi$log_bagrad <- log(cdi$bagrad)
 cdi$log_poverty <- log(cdi$poverty)
 cdi$log_unemp <- log(cdi$unemp)
+cdi$log_pcincome <- log(cdi$pcincome)
 cdi$log_crm_1000 <- log(cdi$crm_1000)
+
+longplot <- data.table(copy(cdi))
+longplot <- melt(longplot,id.vars=c("id","cty","state","region","region_f"))
+histdat <- copy(longplot[variable %in% c("pop18","hsgrad", "log_bagrad","log_poverty","log_unemp","log_pcincome","log_crm_1000")])
+histdat[,fact_var:=factor(variable,levels=c("pop18","hsgrad", "log_bagrad","log_poverty","log_unemp","log_pcincome","log_crm_1000"),
+                          labels=c("Population Age 18-34 (%)","Adults Graduated HS (%)","Adults with Bachelor's Degree (%) (log)","Population in Poverty (%) (log)","Unemployed (%) (log)","Income per Capita ($) (log)","Serious Crime Rate (per 1,000) (log)"))]
+
+gg <- ggplot(histdat,aes(x=value)) + 
+  geom_histogram() + theme_bw() + facet_wrap(~fact_var,scales="free") + ylab("Count") + 
+  xlab("")
+print(gg)
 
 ```
 
 ```{r Simple regressions}
 sr.1 <- lm(log_crm_1000 ~ pop18, data=cdi)
 summary(sr.1) #p-value < 0.001, + estimate
-sr.2 <- lm(log_crm_1000 ~ log_hsgrad, data=cdi)
-summary(sr.2) #p-value < 0.001, - estimate
+sr.2 <- lm(log_crm_1000 ~ hsgrad, data=cdi)
+summary(sr.2) #p-value < 0.001, - estimate == NOTE: update after not logging
 sr.3 <- lm(log_crm_1000 ~ log_bagrad, data=cdi)
 summary(sr.3) #p-value = 0.0586, + estimate
 sr.4 <- lm(log_crm_1000 ~ log_poverty, data=cdi)
@@ -104,7 +128,7 @@ summary(sr.7) #all p-value < 0.05, all - estimates
 
 ```{r Multivariate regressions}
 #Manual stepwise regression (backwards)
-mr.1 <- lm(log_crm_1000 ~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp + pcincome + region_f, data=cdi)
+mr.1 <- lm(log_crm_1000 ~ pop18 + hsgrad + log_bagrad + log_poverty + log_unemp + pcincome + region_f, data=cdi)
 summary(mr.1)
 AIC(mr.1) #385.4556
 
@@ -112,23 +136,23 @@ mr.1a <- lm(log_crm_1000 ~ pop18 + log_poverty + pcincome + region_f, data=cdi)
 summary(mr.1a)
 AIC(mr.1a) #380.4242
 
-mr.2 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp + pcincome, data=cdi)
+mr.2 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad + log_poverty + log_unemp + pcincome, data=cdi)
 summary(mr.2)
 AIC(mr.2) #462.6892
 
-mr.3 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp, data=cdi)
+mr.3 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad + log_poverty + log_unemp, data=cdi)
 summary(mr.3)
 AIC(mr.3) #480.6864
 
-mr.4 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad + log_poverty, data=cdi)
+mr.4 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad + log_poverty, data=cdi)
 summary(mr.4)
 AIC(mr.4) #479.3185
 
-mr.5 <- lm(log_crm_1000~ pop18 + log_hsgrad + log_bagrad, data=cdi)
+mr.5 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad, data=cdi)
 summary(mr.5)
 AIC(mr.5) #585.2698
 
-mr.6 <- lm(log_crm_1000~ pop18 + log_hsgrad, data=cdi)
+mr.6 <- lm(log_crm_1000~ pop18 + hsgrad, data=cdi)
 summary(mr.6)
 AIC(mr.6) #609.8939
 ```
@@ -148,7 +172,7 @@ AIC(backward)
 
 
 #forward and backward stepwise regression with MASS package
-full.model <- lm(log_crm_1000 ~ pop18 + log_hsgrad + log_bagrad + log_poverty + log_unemp + pcincome, data=cdi)
+full.model <- lm(log_crm_1000 ~ pop18 + hsgrad + log_bagrad + log_poverty + log_unemp + pcincome, data=cdi)
 # Stepwise regression model
 step.model <- stepAIC(full.model, direction = "both", 
                       trace = FALSE)
