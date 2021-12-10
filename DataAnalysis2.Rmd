@@ -89,8 +89,8 @@ gg <- ggplot(histdat,aes(x=value)) +
 print(gg)
 
 #Log transform skewed variables
-#cdi$log_hsgrad <- log(cdi$hsgrad) don't think we should log this--not right-skewed
-cdi$exp_bagrad<- exp(cdi$bagrad)
+cdi$exp_hsgrad <- exp(cdi$hsgrad) 
+cdi$log_bagrad<- log(cdi$bagrad)
 cdi$log_poverty <- log(cdi$poverty)
 cdi$log_unemp <- log(cdi$unemp)
 cdi$log_pcincome <- log(cdi$pcincome)
@@ -112,49 +112,51 @@ print(gg)
 ```{r Simple regressions}
 sr.1 <- lm(log_crm_1000 ~ pop18, data=cdi)
 summary(sr.1) #p-value < 0.001, + estimate
-sr.2 <- lm(log_crm_1000 ~ hsgrad, data=cdi)
-summary(sr.2) #p-value < 0.001, - estimate == NOTE: update after not logging
+sr.2 <- lm(log_crm_1000 ~ exp_hsgrad, data=cdi)
+summary(sr.2) #p-value = 0.474, - estimate == NOTE: update after not logging; 12/9 PL updated
 sr.3 <- lm(log_crm_1000 ~ log_bagrad, data=cdi)
 summary(sr.3) #p-value = 0.0586, + estimate
 sr.4 <- lm(log_crm_1000 ~ log_poverty, data=cdi)
 summary(sr.4) #p-value < 0.001, + estimate
 sr.5 <- lm(log_crm_1000 ~ log_unemp, data=cdi) 
 summary(sr.5) #p-value = 0.956, + estimate
-sr.6 <- lm(log_crm_1000 ~ pcincome, data=cdi)
-summary(sr.6) #p-value = 0.16, - estimate
+sr.6 <- lm(log_crm_1000 ~ log_pcincome, data=cdi)
+summary(sr.6) #p-value = 0.218, - estimate; 12/9 PL updated
 sr.7 <- lm(log_crm_1000 ~ region_f, data=cdi)
 summary(sr.7) #all p-value < 0.05, all - estimates
 ```
 
 ```{r Multivariate regressions}
+#Highest significance to least
+#pop18, log_poverty, region_f, log_bagrad, log_pcincome, exp_hsgrad, log_unemp
+
 #Manual stepwise regression (backwards)
-mr.1 <- lm(log_crm_1000 ~ pop18 + hsgrad + log_bagrad + log_poverty + log_unemp + pcincome + region_f, data=cdi)
-summary(mr.1)
-AIC(mr.1) #385.4556
+#Total model
+mr.1 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_bagrad + log_pcincome + exp_hsgrad + log_unemp, data=cdi)
+summary(mr.1) #Adj r2: 0.4833
+AIC(mr.1) #365.7378
 
-mr.1a <- lm(log_crm_1000 ~ pop18 + log_poverty + pcincome + region_f, data=cdi)
-summary(mr.1a)
-AIC(mr.1a) #380.4242
+#Total model-log_unemp is an improvement over Model 1
+mr.2 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_bagrad + log_pcincome + exp_hsgrad, data=cdi)
+summary(mr.2) #Adj r2: 0.4841
+AIC(mr.2) #364.0604
 
-mr.2 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad + log_poverty + log_unemp + pcincome, data=cdi)
-summary(mr.2)
-AIC(mr.2) #462.6892
+#Total model-log_ump, exp_hsgrad is an improvement over Model 2
+mr.3 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_bagrad + log_pcincome, data=cdi)
+summary(mr.3) #Adj r2: 0.4853
+AIC(mr.3) #362.0658
 
-mr.3 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad + log_poverty + log_unemp, data=cdi)
-summary(mr.3)
-AIC(mr.3) #480.6864
+#Total model-log_ump, exp_hsgrad is not an improvement over Model 3
+mr.4 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_bagrad, data=cdi)
+summary(mr.4) #Adj r2: 0.4024; so want to keep log_pcincome
+AIC(mr.4) #426.8241
 
-mr.4 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad + log_poverty, data=cdi)
-summary(mr.4)
-AIC(mr.4) #479.3185
+#Total model-log_ump, exp_hsgrad, log_bagrad is an improvement over Model 3; best model (all p-values < 0.05)
+mr.5 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_pcincome, data=cdi)
+summary(mr.5) #Adj r2 = 0.4864
+AIC(mr.5) #360.1058
 
-mr.5 <- lm(log_crm_1000~ pop18 + hsgrad + log_bagrad, data=cdi)
-summary(mr.5)
-AIC(mr.5) #585.2698
-
-mr.6 <- lm(log_crm_1000~ pop18 + hsgrad, data=cdi)
-summary(mr.6)
-AIC(mr.6) #609.8939
+#Final model is Model 5 (lowest AIC, highest Adj R2)
 ```
 
 ```{r Stepwise regressions}
