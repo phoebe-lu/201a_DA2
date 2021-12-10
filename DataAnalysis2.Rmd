@@ -170,13 +170,13 @@ summary(sr.7) #all p-value < 0.05, all - estimates
 #Manual stepwise regression (backwards)
 #Total model
 mr.1 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_bagrad + log_pcincome + hsgrad + log_unemp, data=cdi)
-summary(mr.1) #Adj r2: 0.4833
-AIC(mr.1) #365.7378
+summary(mr.1) #Adj r2: 0.4836
+AIC(mr.1) #365.5153
 
 #Total model-log_unemp is an improvement over Model 1
 mr.2 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_bagrad + log_pcincome + hsgrad, data=cdi)
-summary(mr.2) #Adj r2: 0.4841
-AIC(mr.2) #364.0604
+summary(mr.2) #Adj r2: 0.4845
+AIC(mr.2) #363.7594
 
 #Total model-log_ump, hsgrad is an improvement over Model 2
 mr.3 <- lm(log_crm_1000 ~ pop18 + log_poverty + region_f + log_bagrad + log_pcincome, data=cdi)
